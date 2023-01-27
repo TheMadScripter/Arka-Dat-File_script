@@ -7,7 +7,7 @@ head -n 1 ./test.dat > ./test_modified.dat
 count=0
 
 # Use awk to add 0.5 to the second field and print the modified line
-cat ./test.dat | while read -r line; do
+tail -n +2 ./test.dat | while read -r line; do
     # Only modify the first 48 lines
     if [ $count -lt 48 ]; then
         echo "$line" | awk '{$2+=0.5; print $0}' >> ./test_modified.dat
