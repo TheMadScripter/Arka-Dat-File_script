@@ -1,2 +1,3 @@
-# Arka-Dat-File_script
-Add's .5 to to the second column
+# USAGE
+
+The script edits just the 2nd column as expected.
