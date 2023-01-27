@@ -16,3 +16,6 @@ tail -n +2 ./test.dat | while read -r line; do
         echo "$line" >> ./test_modified.dat
     fi
 done
+
+# Formats modified .dat file into a table column format.
+column -t ./test_modified.dat | tee ./test_modified.dat
