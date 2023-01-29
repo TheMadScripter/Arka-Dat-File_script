@@ -1,22 +1,29 @@
 #!/bin/bash
 
-# Copies headers of file
-head -n 1 ./test1.pdb > ./test1_modified.pdb
+# Copies header to final file
+head -n 1 ./test1.pdb > ./test1_mod.pdb
 
-# Counter variable
+# Counter Variable
 count=0
 
-# Use awk to add 0.5 to the second field and print the modified line
+> ./temp_file.txt
+
+# Copies lines 2 through 49 to temp file
 tail -n +2 ./test1.pdb | while read -r line; do
-    # Only modify the first 48 lines
-    if [ $count -lt 48 ]; then
-        echo "$line" | awk '{$2+=0.5; print $0}' >> ./test1_modified.pdb
-        count=$((count+1))
-    else
-        echo "$line" >> ./test1_modified.pdb
-    fi
+        # Only modify the first 48 lines
+        if [ $count -lt 48 ]; then
+                echo "$line" >> ./temp_file.txt
+                count=$((count+1))
+        fi
 done
 
-# Formats modified .dat file into a table column format.
-column -t ./test1_modified.pdb > ././test1_modified_formated.pdb
-rm /f ./test1_modified.pdb
+# makes changes to second column number
+cat ./temp_file.txt | while read -r line; do
+        temp=$(echo $line | awk '{print $2}')
+        total=$(bc -l <<< 'scale=2; '$temp'+.5')
+        gtotal=$(echo $total)
+        echo -e "$line" | awk -v orig="$temp" -v new="$gtotal" '{gsub(orig, new); print}' >> ./test1_mod.pdb
+done
+
+#copies rest of data from line 50 to new file
+tail -n +50 ./test1.pdb >> ./test1_mod.pdb
