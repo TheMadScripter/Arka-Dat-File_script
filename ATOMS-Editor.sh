@@ -5,7 +5,7 @@ topvar=$(head -n 1 ./data.lmp)
 sed -n '/'"$topvar"'/,/^Atoms/p' ./data.lmp > ./data_mod.lmp
 
 # Adds a single blank line to keep in line with all other formatting.
-echo "" >> ././data_mod.lmp
+echo "" >> ./data_mod.lmp
 
 # Copies all Atoms info to a temp file for data modification.
 sed -n '/^Atoms/,/^[A-Za-z]/p' ./data.lmp > ./temp_data.txt
