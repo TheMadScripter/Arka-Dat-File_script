@@ -85,6 +85,8 @@
   
 #### Main Script Execution  
 
+  echo "Creating temp files"
+
   # specify the number of rows and columns in the files
   num_rows=$(grep -c '.*' ./TEMP/file_0.xvg | awk '{print $1}')
   num_cols=$(awk -F' ' '{print NF; exit}' ./TEMP/file_0.xvg)
@@ -104,6 +106,8 @@
       done
     done
   done
+
+  echo "Doing conversions"
 
   # Goes through and finds average
   dfg=./TEMP/BLOB/row*[1-3].txt
@@ -129,6 +133,8 @@
         echo $temp >> $output_file
       fi
     done
+    
+    echo "Putting new values back into original files"
     
     # Goes through temp file, adds numbers, and finds average. Then sends back to original file.
     input_file="$output_file"
@@ -164,6 +170,8 @@
   done        
 
 #### Data Finalization
+
+  echo "Finalization process"
 
   # specify the number of rows and columns in the files
   num_rows=$(grep -c '.*' ./TEMP/file_0.xvg | awk '{print $1}')
