@@ -24,8 +24,8 @@
   echo "Creating Variables."
 
   # Asks which file the user wants to use
-  echo -e "${GREEN}1. charge.xvg\n2. field.xvg\n3. pot_out.xvg\n4. out.xvg\n"
-  read -p "Which file type would you like to use? Enter number to select: ${NC}" choice_var
+  echo -e "${GREEN}1. charge.xvg\n2. field.xvg\n3. pot_out.xvg\n4. out.xvg\n${NC}"
+  read -p "Which file type would you like to use? Enter number to select: " choice_var
   
   if [ "$choice_var" == "1" ]; then
     fname="charge"
