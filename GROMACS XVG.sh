@@ -5,23 +5,40 @@
   echo "Checking Folder Structure."
 
   # TEMP folder will be used to house files for editing
-  if [ ! -d ./TEMP ]; then
-    mkdir ./TEMP
-    mkdir ./TEMP/BLOB
-    mkdir ./TEMPLATE
-  fi
-  
-  # FINAL folder will have final product
-  if [ ! -d ./FINAL ]; then
-    mkdir ./FINAL
-  fi
+  dirs=(./TEMP ./TEMP/BLOB ./TEMPLATE ./FINAL)
+
+  for dir in "${dirs[@]}"; do
+    if [ ! -d "$dir" ]; then
+      mkdir "$dir"
+    fi
+  done
 
 #### Variables
 
+  # Sets color for text
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  NC='\033[0m'
+
   echo "Creating Variables."
 
+  # Asks which file the user wants to use
+  echo -e "${GREEN}1. charge.xvg\n2. field.xvg\n3. pot_out.xvg\n4. out.xvg\n"
+  read -p "Which file type would you like to use? Enter number to select: ${NC}" choice_var
+  
+  if [ "$choice_var" == "1" ]; then
+    fname="charge"
+  elif [ "$choice_var" == "2" ]; then
+    fname="field"
+  elif [ "$choice_var" == "3" ]; then
+    fname="pot_out"
+  elif [ "$choice_var" == "4" ]; then
+    fname="out"
+  fi
+    
   # Finds all files in folders that are named as numbers.
-  cfg=$(find ./ -type d -not -path '\/.*' -regextype posix-egrep -regex '^.*/[0-9]+$' -printf '%f\n')
+  cfg=$(find ./ -type d -not -path '\/.*' -regextype posix-egrep -regex '^.*/([1-9]|[1-9][0-9]{1,3})$' -printf '%f\n')
   
   # Counts the amount of .xvg files in TEMP. Used to find average.
   f_count=$(ls ./TEMP | grep -c .xvg)
@@ -44,7 +61,7 @@
   do
     
     # Goes through and copies all the information for the columns into their own unique file name
-    sed -n '/^@ s1 legend/,/*/p' $c/*.xvg > ./TEMP/"file_"$cnt".xvg"
+    sed -n '/^@ s1 legend/,/*/p' $c/$fname.xvg > ./TEMP/"file_"$cnt".xvg"
     
     # Deletes header and line right below it to only have the values
     sed -i '1d' ./TEMP/"file_"$cnt".xvg"
@@ -194,14 +211,4 @@
   spaces_needed=$(( gmx_spacing - max_width ))
   
   # Add the necessary spaces to each column in the input file
-  awk -v pad="$spaces_needed" '{ for (i=1;i<=NF;i++) printf "%25s", $i; printf "\n" }' "$input_file" >> ./FINAL/final.xvg
-
-
-
-
-
-
-
-
-
-
+  awk -v pad="$spaces_needed" '{ for (i=1;i<=NF;i++) printf "%25s", $i; printf "\n" }' "$input_file" >> ./FINAL/""$fname".xvg"
