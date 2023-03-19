@@ -76,7 +76,7 @@
   echo "Preparing final steps before execution."
   
   # Copies one of the original files information to a final file destination.
-  cp "$(find ./ -type f -path '*/[0-9]*' -print0 | shuf -zn1 -z)" ./TEMPLATE
+  cp "$(find ./ -type f -path '*/[0-9]*' -name "*$fname.xvg" -print0 | shuf -zn1 -z)" ./TEMPLATE
   
   topvar=$(head -n 1 ./TEMPLATE/*)
   sed -n '/'"$topvar"'/,/^@ s1 legend/p' ./TEMPLATE/* > ./FINAL/final.xvg
