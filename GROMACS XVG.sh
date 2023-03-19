@@ -152,7 +152,8 @@
     
     # print the total sum and finds average by dividing by .xvg file count.
     temp_total=$(echo $sum)
-    echo "$temp_total / $f_count" | bc -l >> $d
+    final_sum=$(echo "$temp_total / $f_count" | bc -l)
+    echo $final_sum >> $d
     
     # Checks to see if Scientific Expression marker is in file to conver back to SE
     if grep "# SE Value" $d > /dev/null 2>&1; then
