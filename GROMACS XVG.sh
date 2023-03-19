@@ -79,7 +79,7 @@
   cp "$(find ./ -type f -path '*/[0-9]*' -name "*$fname.xvg" -print0 | shuf -zn1 -z)" ./TEMPLATE
   
   topvar=$(head -n 1 ./TEMPLATE/*)
-  sed -n '/'"$topvar"'/,/^@ s1 legend/p' ./TEMPLATE/* > ./FINAL/final.xvg
+  sed -n '/'"$topvar"'/,/^@ s1 legend/p' ./TEMPLATE/* > ./FINAL/""$fname".xvg"
   
   echo "Prepeartion is done. Commencing main script execution!"
   
