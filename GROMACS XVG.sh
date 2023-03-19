@@ -128,45 +128,20 @@
       if echo $line | grep -i [a-z] > /dev/null 2>&1; then
         # Converts the scientific notation to decimal and sends to temp file
         echo "$temp" | awk '{printf "%.10f\n", $1}' >> $output_file
-        echo "# SE Value" >> $output_file
       else
         echo $temp >> $output_file
       fi
     done
     
-    echo "Putting new values back into original files"
-    
     # Goes through temp file, adds numbers, and finds average. Then sends back to original file.
     input_file="$output_file"
-    
-    # Places a Marker in original file for SE values that have been converted to decimal.
-    if grep "# SE Value" $output_file > /dev/null 2>&1; then
-      echo "# SE Value" > $d
-      sed -i 's/# SE Value//g' $output_file
-      sed -i '/^$/d' $output_file
-    else
-      > $d  
-    fi
     
     sum=$(awk '{ total += $1 } END { printf "%.10f\n", total }' $input_file)
     
     # print the total sum and finds average by dividing by .xvg file count.
     temp_total=$(echo $sum)
     final_sum=$(echo "$temp_total / $f_count" | bc -l)
-    echo $final_sum >> $d
-    
-    # Checks to see if Scientific Expression marker is in file to conver back to SE
-    if grep "# SE Value" $d > /dev/null 2>&1; then
-      sed -i '1d' $d
-      sed -i '/^$/d' $d
-      
-      # Converts the decimal back into scientific notation.
-      temp_num=$(cat $d)
-      printf "%.10e\n" $temp_num > ./TEMP/temp_num.txt
-      
-      # Copies new value back to original file
-      cat ./TEMP/temp_num.txt > $d
-    fi
+    echo $final_sum > $d
     
   done        
 
