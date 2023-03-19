@@ -61,10 +61,7 @@
   do
     
     # Goes through and copies all the information for the columns into their own unique file name
-    sed -n '/^@ s1 legend/,/*/p' $c/$fname.xvg > ./TEMP/"file_"$cnt".xvg"
-    
-    # Deletes header and line right below it to only have the values
-    sed -i '1d' ./TEMP/"file_"$cnt".xvg"
+    tac $c/$fname.xvg | awk '/@ s/{exit}1' | tac > ./TEMP/"file_"$cnt".xvg"
     
     # Increments the count by 1, used for file naming.
     cnt=$((cnt+1))
@@ -78,8 +75,7 @@
   # Copies one of the original files information to a final file destination.
   cp "$(find ./ -type f -path '*/[0-9]*' -name "*$fname.xvg" -print0 | shuf -zn1 -z)" ./TEMPLATE
   
-  topvar=$(head -n 1 ./TEMPLATE/*)
-  sed -n '/'"$topvar"'/,/^@ s1 legend/p' ./TEMPLATE/* > ./FINAL/""$fname".xvg"
+  tac ./TEMPLATE/* | sed -n '/@ s/,/*/p' | tac > ./FINAL/""$fname".xvg"
   
   echo "Prepeartion is done. Commencing main script execution!"
   
@@ -128,45 +124,20 @@
       if echo $line | grep -i [a-z] > /dev/null 2>&1; then
         # Converts the scientific notation to decimal and sends to temp file
         echo "$temp" | awk '{printf "%.10f\n", $1}' >> $output_file
-        echo "# SE Value" >> $output_file
       else
         echo $temp >> $output_file
       fi
     done
     
-    echo "Putting new values back into original files"
-    
     # Goes through temp file, adds numbers, and finds average. Then sends back to original file.
     input_file="$output_file"
-    
-    # Places a Marker in original file for SE values that have been converted to decimal.
-    if grep "# SE Value" $output_file > /dev/null 2>&1; then
-      echo "# SE Value" > $d
-      sed -i 's/# SE Value//g' $output_file
-      sed -i '/^$/d' $output_file
-    else
-      > $d  
-    fi
     
     sum=$(awk '{ total += $1 } END { printf "%.10f\n", total }' $input_file)
     
     # print the total sum and finds average by dividing by .xvg file count.
     temp_total=$(echo $sum)
-    final_sum=$(echo "$temp_total / $f_count" | bc -l)
-    echo $final_sum >> $d
-    
-    # Checks to see if Scientific Expression marker is in file to conver back to SE
-    if grep "# SE Value" $d > /dev/null 2>&1; then
-      sed -i '1d' $d
-      sed -i '/^$/d' $d
-      
-      # Converts the decimal back into scientific notation.
-      temp_num=$(cat $d)
-      printf "%.10e\n" $temp_num > ./TEMP/temp_num.txt
-      
-      # Copies new value back to original file
-      cat ./TEMP/temp_num.txt > $d
-    fi
+    final_sum=$(echo "scale=8; $temp_total / $f_count" | bc -l | awk '{printf "%.8f\n", $0}')
+    echo $final_sum > $d
     
   done        
 
@@ -208,16 +179,43 @@
 
 
 #### Formatting
-  input_file="./TEMP/combined.txt"
+
+  if [ "$fname" == "out" ]; then
+    input_file="./TEMP/combined.txt"
+    
+    # Set the desired GROMACS column spacing (default is 10 spaces)
+    gmx_spacing=10
+    
+    # Set the desired XMGrace column spacing for out.xvg files
+    xmgrace_spacing_out=15
+    
+    # Calculate the maximum column width in the input file
+    max_width=$(awk '{ for (i=1;i<=NF;i++) { w=length($i); if (w>x) x=w; } } END { print x+1 }' "$input_file")
+    
+    # Determine the spacing based on the file type
+    if [[ "$fname" == "out" ]]; then
+      spacing=$xmgrace_spacing_out
+    else
+      # Calculate the number of spaces needed to conform to GROMACS spacing
+      spaces_needed=$(( gmx_spacing - max_width ))
+      spacing=$spaces_needed
+    fi
+    
+    # Add the necessary spaces to each column in the input file
+    awk -v pad="$spacing" '{ for (i=1;i<=NF;i++) printf "%*s", pad, $i; printf "\n" }' "$input_file" >> ./FINAL/""$fname".xvg"
+  else
+    input_file="./TEMP/combined.txt"
   
-  # Set the desired GROMACS column spacing (default is 10 spaces)
-  gmx_spacing=10
-  
-  # Calculate the maximum column width in the input file
-  max_width=$(awk '{ for (i=1;i<=NF;i++) { w=length($i); if (w>x) x=w; } } END { print x+1 }' "$input_file")
-  
-  # Calculate the number of spaces needed to conform to GROMACS spacing
-  spaces_needed=$(( gmx_spacing - max_width ))
-  
-  # Add the necessary spaces to each column in the input file
-  awk -v pad="$spaces_needed" '{ for (i=1;i<=NF;i++) printf "%25s", $i; printf "\n" }' "$input_file" >> ./FINAL/""$fname".xvg"
+    # Set the desired GROMACS column spacing (default is 10 spaces)
+    gmx_spacing=10
+    
+    # Calculate the maximum column width in the input file
+    max_width=$(awk '{ for (i=1;i<=NF;i++) { w=length($i); if (w>x) x=w; } } END { print x+1 }' "$input_file")
+    
+    # Calculate the number of spaces needed to conform to GROMACS spacing
+    spaces_needed=$(( gmx_spacing - max_width ))
+    
+    # Add the necessary spaces to each column in the input file
+    awk -v pad="$spaces_needed" '{ for (i=1;i<=NF;i++) printf "%25s", $i; printf "\n" }' "$input_file" >> ./FINAL/""$fname".xvg"
+  fi  
+ 
